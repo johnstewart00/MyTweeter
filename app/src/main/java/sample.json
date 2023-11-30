@@ -1,0 +1,150 @@
+{
+  "success": true,
+  "hasMorePages": false,
+  "statuses": [
+    {
+      "post": "I can't believe this new app!!\n",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701284796540,
+      "urls": [],
+      "mentions": []
+    },
+    {
+      "post": "hello @allen",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701284876081,
+      "urls": [],
+      "mentions": [
+        "@allen"
+      ]
+    },
+    {
+      "post": "This should show on allens feed!",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701286091558,
+      "urls": [],
+      "mentions": []
+    },
+    {
+      "post": "Hello @Frankie",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701286895497,
+      "urls": [],
+      "mentions": [
+        "@Frankie"
+      ]
+    },
+    {
+      "post": "What is up @BOBBY ?? How is life?",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701290658265,
+      "urls": [],
+      "mentions": [
+        "@BOBBY"
+      ]
+    },
+    {
+      "post": "What's good @erg",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701311455114,
+      "urls": [],
+      "mentions": [
+        "@erg"
+      ]
+    },
+    {
+      "post": "It is such a good day to be coding, am I right? @JOEY",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701311768985,
+      "urls": [],
+      "mentions": [
+        "@JOEY"
+      ]
+    },
+    {
+      "post": "What is everyone's favorite kind of music? @thisISME!\n",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701311805408,
+      "urls": [],
+      "mentions": [
+        "@thisISME"
+      ]
+    },
+    {
+      "post": "Ok, I've been posting a lot, I promise I'll slow down like my good friend @jo",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701311842141,
+      "urls": [],
+      "mentions": [
+        "@jo"
+      ]
+    },
+    {
+      "post": "Ok this one and one more to see if we paginate",
+      "user": {
+        "firstName": "john",
+        "lastName": "taylor",
+        "alias": "@taylor",
+        "imageUrl": "https://tweeterbucketjstewart.s3.us-east-2.amazonaws.com/@taylor",
+        "name": "john taylor"
+      },
+      "timestamp": 1701311881956,
+      "urls": [],
+      "mentions": []
+    }
+  ]
+}
