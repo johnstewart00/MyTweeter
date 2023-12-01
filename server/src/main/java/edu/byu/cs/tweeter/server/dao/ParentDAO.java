@@ -1,11 +1,12 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import edu.byu.cs.tweeter.server.dao.interfaces.DAO;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-public class ParentDAO<T> implements DAO{
+public class ParentDAO<T> implements DAO {
     protected DynamoDbClient dynamoDbClient;
 
     protected DynamoDbEnhancedClient enhancedClient;

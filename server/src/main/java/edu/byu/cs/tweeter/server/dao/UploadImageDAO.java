@@ -9,7 +9,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
 
-public class UploadImageDAO {
+import edu.byu.cs.tweeter.server.dao.interfaces.UploadImageDAOInterface;
+
+public class UploadImageDAO implements UploadImageDAOInterface {
     public String uploadImage(String image_string, String alias){
         AmazonS3 s3 = AmazonS3ClientBuilder
                 .standard()

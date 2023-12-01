@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.google.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,11 +10,29 @@ import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
 import edu.byu.cs.tweeter.model.net.response.PostStatusReponse;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.FeedBean;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.StoryBean;
+import edu.byu.cs.tweeter.server.dao.interfaces.FollowDAOInterface;
+import edu.byu.cs.tweeter.server.dao.interfaces.StatusDAOInterface;
 import edu.byu.cs.tweeter.util.Pair;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
-public class StatusDAO extends ParentDAO {
-    // don't set a constant for the table because we will need to access two tables, feed and story possibly more
+public class StatusDAO extends ParentDAO implements StatusDAOInterface {
+    private FollowDAOInterface followDAO;
+
+    @Inject
+    public StatusDAO(FollowDAOInterface followDAO){
+        super();
+        setFollowDAO(followDAO);
+    }
+
+    public FollowDAOInterface getFollowDAO() {
+        return followDAO;
+    }
+
+    public void setFollowDAO(FollowDAOInterface followDAO) {
+        this.followDAO = followDAO;
+    }
+
+    @Override
     public PostStatusReponse postStatus(PostStatusRequest request) {
 
         table = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
@@ -20,7 +40,6 @@ public class StatusDAO extends ParentDAO {
                 request.getPost().getTimestamp(), request.getPost().getUrls(), request.getPost().getMentions());
         table.putItem(storyBean);
         table = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
-        FollowDAO followDAO = new FollowDAO();
         String lastFollower = null;
         List<User> followers = new ArrayList<>();
         Pair<List<User>, Boolean> followersPair = null;

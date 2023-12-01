@@ -9,11 +9,11 @@ import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
-public class GetFollowersHandler implements RequestHandler<FollowersRequest, FollowersResponse>{
+public class GetFollowersHandler extends Handler implements RequestHandler<FollowersRequest, FollowersResponse>{
     @Override
     public FollowersResponse handleRequest(FollowersRequest request, Context context)
     {
-        FollowService service = new FollowService();
+        FollowService service = injector.getInstance(FollowService.class);
         return service.getFollowers(request);
     }
 }

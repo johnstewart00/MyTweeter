@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.google.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -7,6 +9,8 @@ import java.util.List;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.FeedBean;
+import edu.byu.cs.tweeter.server.dao.interfaces.FeedDAOInterface;
+import edu.byu.cs.tweeter.server.dao.interfaces.UserDAOInterface;
 import edu.byu.cs.tweeter.server.dao.resultPages.DataPage;
 import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
@@ -19,10 +23,26 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 
-public class FeedDAO extends ParentDAO {
+public class FeedDAO extends ParentDAO implements FeedDAOInterface {
     private static final String TableName = "feed";
     private static final String aliasAttr = "alias";
     private static final String lastPostAttr = "post";
+    private UserDAOInterface userDAO;
+
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
+    }
+
+    @Inject
+    public FeedDAO (UserDAOInterface userDAO){
+        super();
+        setUserDAO(userDAO);
+    }
+    @Override
     public Pair<List<Status>, Boolean> getStatuses(String targetUserAlias, int pageSize, String lastPost) {
         DynamoDbTable<FeedBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FeedBean.class));
         Key key = Key.builder()
@@ -46,7 +66,6 @@ public class FeedDAO extends ParentDAO {
                 });
         List<FeedBean> allStatusesBean = result.getValues();
         List<Status> allStatuses = new ArrayList<>();
-        UserDAO userDAO = new UserDAO();
         for (int i=0; i<allStatusesBean.size(); i++){
             FeedBean status = allStatusesBean.get(i);
             User user = userDAO.getUser(status.getAliasCreator());
@@ -89,13 +108,5 @@ public class FeedDAO extends ParentDAO {
         }
 
         return statusesIndex;
-    }
-
-    private List<Status> getDummyStatuses() {
-        return getFakeData().getFakeStatuses();
-    }
-
-    FakeData getFakeData() {
-        return FakeData.getInstance();
     }
 }

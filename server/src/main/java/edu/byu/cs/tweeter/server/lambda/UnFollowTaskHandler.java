@@ -9,10 +9,10 @@ import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.unFollowResponse;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
-public class UnFollowTaskHandler implements RequestHandler<unFollowRequest, unFollowResponse> {
+public class UnFollowTaskHandler extends Handler implements RequestHandler<unFollowRequest, unFollowResponse> {
     @Override
     public unFollowResponse handleRequest(unFollowRequest request, Context context) {
-        FollowService service = new FollowService();
+        FollowService service = injector.getInstance(FollowService.class);
         return service.unfollow(request);
     }
 }

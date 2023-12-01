@@ -6,24 +6,34 @@ import java.util.UUID;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.AuthTokenBean;
+import edu.byu.cs.tweeter.server.dao.interfaces.AuthTokenDAOInterface;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
-public class AuthTokenDAO extends ParentDAO {
+public class AuthTokenDAO extends ParentDAO implements AuthTokenDAOInterface {
     private static final String TableName = "authtoken";
+
+    private static final long EXPIRATION_TIME = 5 * 60 * 60 * 1000;
     public AuthTokenDAO(){
         super();
         table = enhancedClient.table(TableName, TableSchema.fromBean(AuthTokenBean.class));
     }
-
+    @Override
     public boolean isValidAuthToken(String alias, AuthToken auth){
         Key key=Key.builder()
                 .partitionValue(auth.getToken()).sortValue(auth.getTimestamp())
                 .build();
         // getting an item with a primary key
         AuthTokenBean authTokenBean = (AuthTokenBean) table.getItem(key);
-        return authTokenBean != null;
+        if (authTokenBean != null) {
+            long currentTimeMillis = System.currentTimeMillis();
+            if (currentTimeMillis - auth.getTimestamp() < EXPIRATION_TIME){
+                return true;
+            } else throw new RuntimeException("Your timestamp is expired");
+        }
+        return false;
     }
+    @Override
     public AuthToken setNewAuthToken(String alias){
         UUID uuid = UUID.randomUUID();
         String uuidAsString = uuid.toString();
@@ -32,5 +42,14 @@ public class AuthTokenDAO extends ParentDAO {
         AuthTokenBean authTokenBean = new AuthTokenBean(auth, alias);
         table.putItem(authTokenBean);
         return auth;
+    }
+
+    @Override
+    public boolean removeAuthToken(AuthToken auth) {
+        Key key=Key.builder()
+                .partitionValue(auth.getToken()).sortValue(auth.getTimestamp())
+                .build();
+        table.deleteItem(key);
+        return true;
     }
 }

@@ -7,9 +7,12 @@ import java.util.List;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.StoryBean;
+import edu.byu.cs.tweeter.server.dao.interfaces.StoryDAOInterface;
+import edu.byu.cs.tweeter.server.dao.interfaces.UserDAOInterface;
 import edu.byu.cs.tweeter.server.dao.resultPages.DataPage;
 import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
+import jakarta.inject.Inject;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -19,15 +22,27 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 
-public class StoryDAO extends ParentDAO {
+public class StoryDAO extends ParentDAO implements StoryDAOInterface {
 
-    public StoryDAO(){
+    private UserDAOInterface userDAO;
+    @Inject
+    public StoryDAO(UserDAOInterface userDAO){
         super();
+        setUserDAO(userDAO);
+    }
+
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
     }
 
     private static final String TableName = "story";
     private static final String aliasAttr = "alias";
     private static final String lastPostAttr = "post";
+    @Override
     public Pair<List<Status>, Boolean> getStatuses(String targetUserAlias, int limit, String lastPost) {
 
         DynamoDbTable<StoryBean> index = enhancedClient.table(TableName, TableSchema.fromBean(StoryBean.class));
@@ -53,7 +68,6 @@ public class StoryDAO extends ParentDAO {
 
         List<StoryBean> allStatusesBean = result.getValues();
         List<Status> allStatuses = new ArrayList<>();
-        UserDAO userDAO = new UserDAO();
         for(int i=0; i< allStatusesBean.size(); i++){
             StoryBean status = allStatusesBean.get(i);
             User user = userDAO.getUser(status.getAlias());
@@ -99,13 +113,5 @@ public class StoryDAO extends ParentDAO {
         }
 
         return statusesIndex;
-    }
-
-    private List<Status> getDummyStatuses() {
-        return getFakeData().getFakeStatuses();
-    }
-
-    FakeData getFakeData() {
-        return FakeData.getInstance();
     }
 }

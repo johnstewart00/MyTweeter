@@ -27,7 +27,7 @@ public class IsFollowerTask extends AuthenticatedTask {
      * The alleged followee.
      */
     private User followee;
-    private boolean isFollower = true;
+    private boolean isFollower;
     public IsFollowerTask(AuthToken authToken, User follower, User followee, Handler messageHandler) {
         super(messageHandler, authToken);
         this.follower = follower;
@@ -36,7 +36,6 @@ public class IsFollowerTask extends AuthenticatedTask {
 
     @Override
     protected void doTask( ) {
-        //TODO add some functionality here seeing if isFollower should be true
         IsFollowerResponse response = null;
         ServerFacade serverFacade = new ServerFacade();
         IsFollowerRequest request = new IsFollowerRequest(follower, followee, authToken);
@@ -50,8 +49,7 @@ public class IsFollowerTask extends AuthenticatedTask {
         }
         System.out.println("Reponse returned: "+ response.isSuccess());
         System.out.println("Setting isfollower to: " + response.isFollower());
-        //TODO set ifFollower to response.isFollower when it works and doesn't always return false
-        isFollower = response.isSuccess();
+        isFollower = response.isFollower();
     }
 
     @Override

@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.google.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ import edu.byu.cs.tweeter.model.net.response.FollowingCountResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
 import edu.byu.cs.tweeter.model.net.response.unFollowResponse;
 import edu.byu.cs.tweeter.server.dao.accessHelpers.FollowBean;
+import edu.byu.cs.tweeter.server.dao.interfaces.FollowDAOInterface;
+import edu.byu.cs.tweeter.server.dao.interfaces.UserDAOInterface;
 import edu.byu.cs.tweeter.server.dao.resultPages.DataPage;
 import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
@@ -31,18 +35,28 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 /**
  * A ParentDAO for accessing 'following' data from the database.
  */
-public class FollowDAO extends ParentDAO {
+public class FollowDAO extends ParentDAO implements FollowDAOInterface {
     private static final String TableName = "follows";
     public static final String IndexName = "follows_index";
 
     private static final String FollowerAttr = "follower_handle";
     private static final String FolloweeAttr = "followee_handle";
+    private UserDAOInterface userDAO;
     // DynamoDB client
-    public FollowDAO(){
+    @Inject
+    public FollowDAO(UserDAOInterface userDAO){
         super();
+        setUserDAO(userDAO);
         table = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
     }
 
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
+    }
 
     private Integer count = 0;
 
@@ -53,6 +67,7 @@ public class FollowDAO extends ParentDAO {
      * @param request the User whose count of how many following is desired.
      * @return said count.
      */
+    @Override
     public FollowingCountResponse getFollowingCount(FollowingCountRequest request) {
         String lastFollowee = null;
         List<User> followees = new ArrayList<>();
@@ -79,49 +94,11 @@ public class FollowDAO extends ParentDAO {
      *                          null if there was no previous request.
      * @return the followees.
      */
+    @Override
     public Pair<List<User>, Boolean> getFollowees(String targetUserAlias, int pageSize, String lastUserAlias) {
 
-        DynamoDbTable<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
-        Key key = Key.builder()
-                .partitionValue(targetUserAlias)
-                .build();
+        List<User> allFollowees = getAllFollowees(targetUserAlias);
 
-        QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
-                .queryConditional(QueryConditional.keyEqualTo(key));
-
-//        if(isNonEmptyString(lastUserAlias)) {
-//            Map<String, AttributeValue> startKey = new HashMap<>();
-//            startKey.put(FollowerAttr, AttributeValue.builder().s(targetUserAlias).build());
-//            startKey.put(FolloweeAttr, AttributeValue.builder().s(lastUserAlias).build());
-//
-//            requestBuilder.exclusiveStartKey(startKey);
-//        }
-
-        QueryEnhancedRequest request = requestBuilder.build();
-
-        DataPage<FollowBean> result = new DataPage<FollowBean>();
-
-        SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
-        PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
-        pages.stream()
-                .limit(1)
-                .forEach((Page<FollowBean> page) -> {
-                    result.setHasMorePages(page.lastEvaluatedKey() != null);
-                    page.items().forEach(visit -> result.getValues().add(visit));
-                });
-//        List<String> userAlias = new ArrayList<>();
-//        for (int i=0; i< result.getValues().size(); i++ ){
-//            userAlias.add(result.getValues().get(i).getFollowee_name());
-//        }
-//        throw new RuntimeException("this is what result is: " + userAlias);
-
-        List<FollowBean> allFolloweesBean = result.getValues();
-        List<User> allFollowees = new ArrayList<>();
-        UserDAO userDAO = new UserDAO();
-        for (int i=0; i<allFolloweesBean.size(); i++){
-            User user = userDAO.getUser(allFolloweesBean.get(i).getFollowee_handle());
-            allFollowees.add(user);
-        }
         boolean hasMorePages = false;
         List<User> responseFollowees = new ArrayList<>(pageSize);
         if(pageSize > 0) {
@@ -167,65 +144,9 @@ public class FollowDAO extends ParentDAO {
 
         return followsIndex;
     }
-
-    /**
-     * Returns the list of dummy followee data. This is written as a separate method to allow
-     * mocking of the followees.
-     *
-     * @return the followees.
-     */
-    List<User> getDummyFollowees() {
-        return getFakeData().getFakeUsers();
-    }
-
-    /**
-     * Returns the {@link FakeData} object used to generate dummy followees.
-     * This is written as a separate method to allow mocking of the {@link FakeData}.
-     *
-     * @return a {@link FakeData} instance.
-     */
-    FakeData getFakeData() {
-        return FakeData.getInstance();
-    }
-
+    @Override
     public Pair<List<User>, Boolean> getFollowers(String targetUserAlias, int pageSize, String lastUserAlias) {
-        DynamoDbIndex<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class)).index(IndexName);
-        Key key = Key.builder()
-                .partitionValue(targetUserAlias)
-                .build();
-
-        QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
-                .queryConditional(QueryConditional.keyEqualTo(key));
-
-//        if(isNonEmptyString(lastUserAlias)) {
-//            Map<String, AttributeValue> startKey = new HashMap<>();
-//            startKey.put(FolloweeAttr, AttributeValue.builder().s(targetUserAlias).build());
-//            startKey.put(FollowerAttr, AttributeValue.builder().s(lastUserAlias).build());
-//
-//            requestBuilder.exclusiveStartKey(startKey);
-//        }
-
-        QueryEnhancedRequest request = requestBuilder.build();
-
-        DataPage<FollowBean> result = new DataPage<FollowBean>();
-
-        SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
-        PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
-        pages.stream()
-                .limit(1)
-                .forEach((Page<FollowBean> page) -> {
-                    result.setHasMorePages(page.lastEvaluatedKey() != null);
-                    page.items().forEach(visit -> result.getValues().add(visit));
-                });
-
-        List<FollowBean> allFollowersBean = result.getValues();
-        List<User> allFollowers = new ArrayList<>();
-        UserDAO userDAO = new UserDAO();
-        for (int i=0; i<allFollowersBean.size(); i++){
-            User user = userDAO.getUser(allFollowersBean.get(i).getFollower_handle());
-            allFollowers.add(user);
-        }
-
+        List<User> allFollowers = getAllFollowers(targetUserAlias);
         List<User> responseFollowers = new ArrayList<>(pageSize);
 
         boolean hasMorePages = false;
@@ -245,10 +166,7 @@ public class FollowDAO extends ParentDAO {
         return new Pair<>(responseFollowers, hasMorePages);
     }
 
-    private List<User> getDummyFollowers() {
-        return getFakeData().getFakeUsers();
-    }
-
+    @Override
     public FollowersCountResponse getFollowerCount(FollowersCountRequest request) {
         String lastFollower = null;
         List<User> followers = new ArrayList<>();
@@ -262,47 +180,91 @@ public class FollowDAO extends ParentDAO {
         }
         return new FollowersCountResponse(followers.size());
     }
-
-    private AuthTokenDAO getAuthDAO() {
-        return new AuthTokenDAO();
-    }
-
+    @Override
     public FollowResponse followTask(FollowRequest request) {
-        // TODO use request to take current user and add targeted user as a followee
         FollowBean followBean = new FollowBean(request.getCurrUser().getAlias(), request.getCurrUser().getFirstName(),
                 request.getTargetUser().getAlias(), request.getTargetUser().getFirstName());
         table.putItem(followBean);
         return new FollowResponse(true);
     }
-
+    @Override
     public unFollowResponse unfollowTask(unFollowRequest request) {
-        //TODO access the database and remove target user as someone curr User follows
         Key key = Key.builder()
                 .partitionValue(request.getCurrUser().getAlias()).sortValue(request.getTargetUser().getAlias())
                 .build();
         table.deleteItem(key);
         return new unFollowResponse(true);
     }
-
+    @Override
     public IsFollowerResponse isFollower(IsFollowerRequest request) {
-        //TODO access the database and see if follower follows followee
         IsFollowerResponse response = new IsFollowerResponse(true);
-        String lastFollower = null;
-        List<User> followers = new ArrayList<>();
-        Pair<List<User>, Boolean> followersPair = null;
-        Boolean getMorePages = true;
-        while (getMorePages) {
-            followersPair = getFollowers(request.getFollowee().getAlias(), 25, lastFollower);
-            followers.addAll(followersPair.getFirst());
-            lastFollower = followersPair.getFirst().get(followersPair.getFirst().size()-1).getAlias();
-            getMorePages = followersPair.getSecond();
-        }
-        if (followers.contains(request.getFollower())){
+        List<User> followees = getAllFollowees(request.getFollower().getAlias());
+        if (followees.contains(request.getFollowee())){
             response.setIsFollower(true);
         } else {
             response.setIsFollower(false);
         }
-
         return response;
+    }
+
+    private List<User> getAllFollowees(String targetUserAlias){
+        DynamoDbTable<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
+        Key key = Key.builder()
+                .partitionValue(targetUserAlias)
+                .build();
+
+        QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
+                .queryConditional(QueryConditional.keyEqualTo(key));
+
+        QueryEnhancedRequest request = requestBuilder.build();
+
+        DataPage<FollowBean> result = new DataPage<FollowBean>();
+
+        SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
+        PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
+        pages.stream()
+                .limit(1)
+                .forEach((Page<FollowBean> page) -> {
+                    result.setHasMorePages(page.lastEvaluatedKey() != null);
+                    page.items().forEach(visit -> result.getValues().add(visit));
+                });
+
+        List<FollowBean> allFolloweesBean = result.getValues();
+        List<User> allFollowees = new ArrayList<>();
+        for (int i=0; i<allFolloweesBean.size(); i++){
+            User user = userDAO.getUser(allFolloweesBean.get(i).getFollowee_handle());
+            allFollowees.add(user);
+        }
+        return allFollowees;
+    }
+    private List<User> getAllFollowers(String targetUserAlias){
+        DynamoDbIndex<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class)).index(IndexName);
+        Key key = Key.builder()
+                .partitionValue(targetUserAlias)
+                .build();
+
+        QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
+                .queryConditional(QueryConditional.keyEqualTo(key));
+
+        QueryEnhancedRequest request = requestBuilder.build();
+
+        DataPage<FollowBean> result = new DataPage<FollowBean>();
+
+        SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
+        PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
+        pages.stream()
+                .limit(1)
+                .forEach((Page<FollowBean> page) -> {
+                    result.setHasMorePages(page.lastEvaluatedKey() != null);
+                    page.items().forEach(visit -> result.getValues().add(visit));
+                });
+
+        List<FollowBean> allFollowersBean = result.getValues();
+        List<User> allFollowers = new ArrayList<>();
+        for (int i=0; i<allFollowersBean.size(); i++){
+            User user = userDAO.getUser(allFollowersBean.get(i).getFollower_handle());
+            allFollowers.add(user);
+        }
+        return allFollowers;
     }
 }

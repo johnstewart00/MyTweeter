@@ -7,12 +7,13 @@ import edu.byu.cs.tweeter.model.net.request.LogoutRequest;
 import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.PostStatusReponse;
+import edu.byu.cs.tweeter.server.service.FollowService;
 import edu.byu.cs.tweeter.server.service.StatusService;
 
-public class PostStatusHandler implements RequestHandler<PostStatusRequest, PostStatusReponse> {
+public class PostStatusHandler extends Handler implements RequestHandler<PostStatusRequest, PostStatusReponse> {
     @Override
     public PostStatusReponse handleRequest(PostStatusRequest request, Context context) {
-        StatusService service = new StatusService();
+        StatusService service = injector.getInstance(StatusService.class);
         return service.postStatus(request);
     }
 }
