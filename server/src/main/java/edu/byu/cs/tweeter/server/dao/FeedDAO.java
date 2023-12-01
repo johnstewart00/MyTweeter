@@ -12,7 +12,6 @@ import edu.byu.cs.tweeter.server.dao.accessHelpers.FeedBean;
 import edu.byu.cs.tweeter.server.dao.interfaces.FeedDAOInterface;
 import edu.byu.cs.tweeter.server.dao.interfaces.UserDAOInterface;
 import edu.byu.cs.tweeter.server.dao.resultPages.DataPage;
-import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -28,14 +27,6 @@ public class FeedDAO extends ParentDAO implements FeedDAOInterface {
     private static final String aliasAttr = "alias";
     private static final String lastPostAttr = "post";
     private UserDAOInterface userDAO;
-
-    public UserDAOInterface getUserDAO() {
-        return userDAO;
-    }
-
-    public void setUserDAO(UserDAOInterface userDAO) {
-        this.userDAO = userDAO;
-    }
 
     @Inject
     public FeedDAO (UserDAOInterface userDAO){
@@ -108,5 +99,12 @@ public class FeedDAO extends ParentDAO implements FeedDAOInterface {
         }
 
         return statusesIndex;
+    }
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
     }
 }

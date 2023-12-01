@@ -10,31 +10,61 @@ import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
-import edu.byu.cs.tweeter.server.dao.AuthTokenDAO;
-import edu.byu.cs.tweeter.server.dao.UploadImageDAO;
-import edu.byu.cs.tweeter.server.dao.UserDAO;
 import edu.byu.cs.tweeter.server.dao.interfaces.AuthTokenDAOInterface;
+import edu.byu.cs.tweeter.server.dao.interfaces.UploadImageDAOInterface;
 import edu.byu.cs.tweeter.server.dao.interfaces.UserDAOInterface;
-import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
 import jakarta.inject.Inject;
 
-public class UserService {
-    private AuthTokenDAOInterface authTokenDAO;
+public class UserService extends Service {
     private UserDAOInterface userDAO;
+    private UploadImageDAOInterface uploadImageDAO;
 
     @Inject
-    public UserService(AuthTokenDAOInterface authTokenDAO, UserDAOInterface userDAO){
-        setAuthTokenDAO(authTokenDAO);
+    public UserService(UserDAOInterface userDAO, UploadImageDAOInterface uploadImageDAO, AuthTokenDAOInterface authTokenDAO){
+        super(authTokenDAO);
         setUserDAO(userDAO);
+        setUploadImageDAO(uploadImageDAO);
     }
 
-    public AuthTokenDAOInterface getAuthTokenDAO() {
-        return authTokenDAO;
+    public LoginResponse login(LoginRequest request) {
+        checkRequest(request);
+        checkNull(request.getUsername(), NO_USERNAME);
+        checkNull(request.getPassword(), NO_PASSWORD);
+
+        Pair<User, AuthToken> result = userDAO.login(request);
+        checkNull(result, INVALID_CREDENTIALS);
+
+        return new LoginResponse(result.getFirst(), result.getSecond());
+    }
+    public RegisterResponse register(RegisterRequest request) {
+        checkRequest(request);
+        checkNull(request.getUsername(), NO_USERNAME);
+        checkNull(request.getPassword(), NO_PASSWORD);
+
+
+        String imageUrl = uploadImageDAO.uploadImage(request.getImage(), request.getUsername());
+        Pair<User, AuthToken> result = userDAO.register(request.getUsername(), request.getPassword(), request.getFirstName(), request.getLastName(), imageUrl );
+        return new RegisterResponse(result.getFirst(), result.getSecond());
     }
 
-    public void setAuthTokenDAO(AuthTokenDAOInterface authTokenDAO) {
-        this.authTokenDAO = authTokenDAO;
+    public UserResponse getUser(UserRequest request) {
+        checkRequest(request);
+        checkNull(request.getCurrUser(), NO_CURRENT_USER);
+        checkAuthToken(request.getCurrUser().getAlias(), request.getAuthToken());
+
+        User requestedUser = userDAO.getUser(request.getAlias());
+        checkNull(requestedUser, String.format("[Bad Request] requested user %s does not exist", request.getAlias()));
+
+        return new UserResponse(requestedUser);
+    }
+
+    public LogoutResponse logout(LogoutRequest request) {
+        checkRequest(request);
+        checkNull(request.getCurrUser(), NO_CURRENT_USER);
+        checkAuthToken(request.getCurrUser().getAlias(), request.getAuthToken());
+
+        return userDAO.logout(request);
     }
 
     public UserDAOInterface getUserDAO() {
@@ -45,51 +75,11 @@ public class UserService {
         this.userDAO = userDAO;
     }
 
-    public LoginResponse login(LoginRequest request) {
-        if (request == null) throw new RuntimeException("[InternalError] sorry for the internal error");
-        if(request.getUsername() == null){
-            throw new RuntimeException("[Bad Request] Missing a username");
-        } else if(request.getPassword() == null) {
-            throw new RuntimeException("[Bad Request] Missing a password");
-        }
-
-        // TODO: Generates dummy data. Replace with a real implementation.
-        Pair<User, AuthToken> result = userDAO.login(request);
-        if (result == null) throw new RuntimeException("[Bad Request] Did not find the user");
-        return new LoginResponse(result.getFirst(), result.getSecond());
-    }
-    public RegisterResponse register(RegisterRequest request) {
-        if (request == null) throw new RuntimeException("[InternalError] sorry for the internal error");
-        if(request.getUsername() == null){
-            throw new RuntimeException("[Bad Request] Missing a username");
-        } else if(request.getPassword() == null) {
-            throw new RuntimeException("[Bad Request] Missing a password");
-        }
-        UploadImageDAO uploadImageDAO = new UploadImageDAO();
-        String imageUrl = uploadImageDAO.uploadImage(request.getImage(), request.getUsername());
-        Pair<User, AuthToken> result = userDAO.register(request.getUsername(), request.getPassword(), request.getFirstName(), request.getLastName(), imageUrl );
-        return new RegisterResponse(result.getFirst(), result.getSecond());
+    public UploadImageDAOInterface getUploadImageDAO() {
+        return uploadImageDAO;
     }
 
-    public UserResponse getUser(UserRequest request) {
-        if (request == null) throw new RuntimeException("[InternalError] sorry for the internal error");
-        if (request.getAuthToken() == null) throw new RuntimeException("[Bad Request] You must include an AuthToken");
-        if (request.getCurrUser() == null) throw new RuntimeException("[Bad Request] You have to have a current user");
-        if (!authTokenDAO.isValidAuthToken(request.getCurrUser().getAlias(), request.getAuthToken()))
-            throw new RuntimeException("[AuthError] unauthenticated request");
-        User requestedUser = userDAO.getUser(request.getAlias());
-        if (requestedUser == null){
-            throw new RuntimeException(String.format("[Bad Request] requested user %s does not exist", request.getAlias()));
-        }
-        return new UserResponse(requestedUser);
-    }
-
-    public LogoutResponse logout(LogoutRequest request) {
-        if (request == null) throw new RuntimeException("[InternalError] sorry for the internal error");
-        if (request.getCurrUser() == null) throw new RuntimeException("[Bad Request] you must include currUser");
-        if (request.getAuthToken() == null) throw new RuntimeException("[Bad Request] you must include an authToken");
-        if (!authTokenDAO.isValidAuthToken(request.getCurrUser().getAlias(), request.getAuthToken()))
-            throw new RuntimeException("[AuthError] unauthenticated request");
-        return userDAO.logout(request);
+    public void setUploadImageDAO(UploadImageDAOInterface uploadImageDAO) {
+        this.uploadImageDAO = uploadImageDAO;
     }
 }

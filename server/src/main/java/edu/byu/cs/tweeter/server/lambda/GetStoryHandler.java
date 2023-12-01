@@ -5,7 +5,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import edu.byu.cs.tweeter.model.net.request.StoryRequest;
 import edu.byu.cs.tweeter.model.net.response.StoryResponse;
-import edu.byu.cs.tweeter.server.service.FollowService;
 import edu.byu.cs.tweeter.server.service.StoryService;
 
 public class GetStoryHandler extends Handler  implements RequestHandler<StoryRequest, StoryResponse> {

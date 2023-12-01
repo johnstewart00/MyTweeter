@@ -12,6 +12,7 @@ import java.util.Base64;
 import edu.byu.cs.tweeter.server.dao.interfaces.UploadImageDAOInterface;
 
 public class UploadImageDAO implements UploadImageDAOInterface {
+    @Override
     public String uploadImage(String image_string, String alias){
         AmazonS3 s3 = AmazonS3ClientBuilder
                 .standard()

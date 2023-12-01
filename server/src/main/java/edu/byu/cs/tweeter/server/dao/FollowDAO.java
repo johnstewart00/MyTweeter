@@ -50,16 +50,6 @@ public class FollowDAO extends ParentDAO implements FollowDAOInterface {
         table = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
     }
 
-    public UserDAOInterface getUserDAO() {
-        return userDAO;
-    }
-
-    public void setUserDAO(UserDAOInterface userDAO) {
-        this.userDAO = userDAO;
-    }
-
-    private Integer count = 0;
-
     /**
      * Gets the count of users from the database that the user specified is following. The
      * current implementation uses generated data and doesn't actually access a database.
@@ -69,16 +59,7 @@ public class FollowDAO extends ParentDAO implements FollowDAOInterface {
      */
     @Override
     public FollowingCountResponse getFollowingCount(FollowingCountRequest request) {
-        String lastFollowee = null;
-        List<User> followees = new ArrayList<>();
-        Pair<List<User>, Boolean> followeesPair = null;
-        Boolean getMorePages = true;
-        while (getMorePages) {
-            followeesPair = getFollowees(request.getFollower().getAlias(), 25, lastFollowee);
-            followees.addAll(followeesPair.getFirst());
-            lastFollowee = followeesPair.getFirst().get(followeesPair.getFirst().size()-1).getAlias();
-            getMorePages = followeesPair.getSecond();
-        }
+        List<User> followees = getAllFollowees(request.getFollower().getAlias());
         return new FollowingCountResponse(followees.size());
     }
 
@@ -168,16 +149,7 @@ public class FollowDAO extends ParentDAO implements FollowDAOInterface {
 
     @Override
     public FollowersCountResponse getFollowerCount(FollowersCountRequest request) {
-        String lastFollower = null;
-        List<User> followers = new ArrayList<>();
-        Pair<List<User>, Boolean> followersPair = null;
-        Boolean getMorePages = true;
-        while (getMorePages) {
-            followersPair = getFollowers(request.getFollowee().getAlias(), 25, lastFollower);
-            followers.addAll(followersPair.getFirst());
-            lastFollower = followersPair.getFirst().get(followersPair.getFirst().size()-1).getAlias();
-            getMorePages = followersPair.getSecond();
-        }
+        List<User> followers = getAllFollowers(request.getFollowee().getAlias());
         return new FollowersCountResponse(followers.size());
     }
     @Override
@@ -266,5 +238,12 @@ public class FollowDAO extends ParentDAO implements FollowDAOInterface {
             allFollowers.add(user);
         }
         return allFollowers;
+    }
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
     }
 }

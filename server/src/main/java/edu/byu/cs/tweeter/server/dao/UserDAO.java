@@ -27,14 +27,6 @@ public class UserDAO extends ParentDAO implements UserDAOInterface {
         table = enhancedClient.table(TableName, TableSchema.fromBean(UserBean.class));
         encoder = new BCryptPasswordEncoder();
     }
-
-    public AuthTokenDAOInterface getAuthTokenDAO() {
-        return authTokenDAO;
-    }
-
-    public void setAuthTokenDAO(AuthTokenDAOInterface authTokenDAO) {
-        this.authTokenDAO = authTokenDAO;
-    }
     @Override
     public Pair<User, AuthToken> register(String alias, String password, String firstName,
                                           String lastName, String imageURL) {
@@ -49,9 +41,7 @@ public class UserDAO extends ParentDAO implements UserDAOInterface {
     public Pair<User, AuthToken> login(LoginRequest request) {
         UserBean user = getUserBean(request.getUsername());
         if (user == null) return null;
-        if (!Matches(request.getPassword(), user.getPassword()))  throw new RuntimeException("[Bad Request] Incorrect Credentials, the password you" +
-                "provided (salted) is: " + SaltPassword(request.getPassword()) + " and the salted password we are looking" +
-                "for is: " + user.getPassword());
+        if (!Matches(request.getPassword(), user.getPassword()))  throw new RuntimeException("[Bad Request] Incorrect Credentials");
         AuthToken auth = authTokenDAO.setNewAuthToken(request.getUsername());
         User userToReturn = new User(user.getFirstName(), user.getLastName(), user.getAlias(), user.getImageURL());
         return new Pair<>(userToReturn, auth);
@@ -86,5 +76,12 @@ public class UserDAO extends ParentDAO implements UserDAOInterface {
     public Boolean Matches(String pw, String hash){
         Boolean match = encoder.matches(pw, hash);
         return match;
+    }
+    public AuthTokenDAOInterface getAuthTokenDAO() {
+        return authTokenDAO;
+    }
+
+    public void setAuthTokenDAO(AuthTokenDAOInterface authTokenDAO) {
+        this.authTokenDAO = authTokenDAO;
     }
 }

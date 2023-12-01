@@ -31,14 +31,6 @@ public class StoryDAO extends ParentDAO implements StoryDAOInterface {
         setUserDAO(userDAO);
     }
 
-    public UserDAOInterface getUserDAO() {
-        return userDAO;
-    }
-
-    public void setUserDAO(UserDAOInterface userDAO) {
-        this.userDAO = userDAO;
-    }
-
     private static final String TableName = "story";
     private static final String aliasAttr = "alias";
     private static final String lastPostAttr = "post";
@@ -74,10 +66,7 @@ public class StoryDAO extends ParentDAO implements StoryDAOInterface {
             allStatuses.add(new Status(status.getPost(), user, status.getTimestamp(), status.getUrls(), status.getMentions()));
         }
         Collections.reverse(allStatuses);
-        System.out.println("All of the statuses returned and reversed are: ");
-        for (int i = 0; i< allStatuses.size(); i++){
-            System.out.println(allStatuses.get(i).getPost());
-        }
+
         boolean hasMorePages = false;
         List<Status> responseStatuses = new ArrayList<>(limit);
         if(limit > 0) {
@@ -113,5 +102,12 @@ public class StoryDAO extends ParentDAO implements StoryDAOInterface {
         }
 
         return statusesIndex;
+    }
+    public UserDAOInterface getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAOInterface userDAO) {
+        this.userDAO = userDAO;
     }
 }

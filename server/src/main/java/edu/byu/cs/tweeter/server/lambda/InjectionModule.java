@@ -1,8 +1,6 @@
 package edu.byu.cs.tweeter.server.lambda;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.name.Named;
 
 import edu.byu.cs.tweeter.server.dao.AuthTokenDAO;
 import edu.byu.cs.tweeter.server.dao.FeedDAO;
@@ -30,14 +28,4 @@ public class InjectionModule extends AbstractModule {
         bind(UploadImageDAOInterface.class).to(UploadImageDAO.class);
         bind(UserDAOInterface.class).to(UserDAO.class);
     }
-
-//    @Provides
-//    @Named("URL")
-//    public String SpellingChecker() { return "https://pastebin.com/raw/t6AZ5kx3";}
-//
-//    @Provides
-//    @Named("DictionaryFilePath")
-//    public String dictionaryFilePath() {
-//        return "src/dict.txt";
-//    }
 }

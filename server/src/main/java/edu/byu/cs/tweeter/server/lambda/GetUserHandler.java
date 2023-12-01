@@ -7,7 +7,6 @@ import com.google.inject.Injector;
 
 import edu.byu.cs.tweeter.model.net.request.UserRequest;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
-import edu.byu.cs.tweeter.server.service.FollowService;
 import edu.byu.cs.tweeter.server.service.UserService;
 
 public class GetUserHandler extends Handler implements RequestHandler<UserRequest, UserResponse> {

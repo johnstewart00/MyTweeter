@@ -13,13 +13,14 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 public class AuthTokenDAO extends ParentDAO implements AuthTokenDAOInterface {
     private static final String TableName = "authtoken";
 
-    private static final long EXPIRATION_TIME = 5 * 60 * 60 * 1000;
+    private static final long EXPIRATION_TIME = 50 * 60 * 60 * 1000;
     public AuthTokenDAO(){
         super();
         table = enhancedClient.table(TableName, TableSchema.fromBean(AuthTokenBean.class));
     }
     @Override
     public boolean isValidAuthToken(String alias, AuthToken auth){
+        if (alias == null || auth == null) return false;
         Key key=Key.builder()
                 .partitionValue(auth.getToken()).sortValue(auth.getTimestamp())
                 .build();

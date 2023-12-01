@@ -2,28 +2,26 @@ package edu.byu.cs.tweeter.server.service;
 
 import com.google.inject.Inject;
 
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
 import edu.byu.cs.tweeter.model.net.response.PostStatusReponse;
-import edu.byu.cs.tweeter.server.dao.AuthTokenDAO;
-import edu.byu.cs.tweeter.server.dao.StatusDAO;
 import edu.byu.cs.tweeter.server.dao.interfaces.AuthTokenDAOInterface;
 import edu.byu.cs.tweeter.server.dao.interfaces.StatusDAOInterface;
 
-public class StatusService {
-    private AuthTokenDAOInterface authTokenDAO;
+public class StatusService extends Service{
     private StatusDAOInterface statusDAO;
     @Inject
-    public StatusService(AuthTokenDAOInterface authTokenDAO, StatusDAOInterface statusDAO){
-        setAuthTokenDAO(authTokenDAO);
+    public StatusService(StatusDAOInterface statusDAO, AuthTokenDAOInterface authTokenDAO){
+        super(authTokenDAO);
         setStatusDAO(statusDAO);
     }
 
-    public AuthTokenDAOInterface getAuthTokenDAO() {
-        return authTokenDAO;
-    }
+    public PostStatusReponse postStatus(PostStatusRequest request) {
+        checkRequest(request);
+        checkNull(request.getPost(),NO_POST);
+        checkAuthToken(request.getCurrUser().getAlias(), request.getAuth());
 
-    public void setAuthTokenDAO(AuthTokenDAOInterface authTokenDAO) {
-        this.authTokenDAO = authTokenDAO;
+        return statusDAO.postStatus(request);
     }
 
     public StatusDAOInterface getStatusDAO() {
@@ -32,15 +30,6 @@ public class StatusService {
 
     public void setStatusDAO(StatusDAOInterface statusDAO) {
         this.statusDAO = statusDAO;
-    }
-
-    public PostStatusReponse postStatus(PostStatusRequest request) {
-        if (request == null) throw new RuntimeException("[InternalError] sorry for the internal error");
-        if (request.getPost() == null) throw new RuntimeException("[Bad Request] you must include a post");
-        if( request.getAuth() == null) throw new RuntimeException("[Bad Request] you must include a authToken");
-        if (!authTokenDAO.isValidAuthToken(request.getCurrUser().getAlias(), request.getAuth()))
-            throw new RuntimeException("[AuthError] unauthenticated request");
-        return statusDAO.postStatus(request);
     }
 
 }
